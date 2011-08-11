@@ -11,6 +11,11 @@
       "unicorn"
     ]
   },
+  "environments_map": {
+    "chef_environment": {
+      "rails_env": "the rails environment to use for nodes in this chef_environment",
+    }
+  }
   "memcached_role": [
     "name of the role used for the app-specific memcached server",
     "my_app_memcached"

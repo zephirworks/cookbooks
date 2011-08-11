@@ -22,6 +22,10 @@ action :create do
 
   # make the _default chef_environment look like the Rails production environment
   rails_env = (node.chef_environment =~ /_default/ ? "production" : node.chef_environment)
+  if app['environments_map'] && app['environments_map'][node.chef_environment]
+    env_map = app['environments_map'][node.chef_environment]
+    rails_env = env_map['rails_env'] if env_map['rails_env']
+  end
   node.run_state[:rails_env] = rails_env
 
   ###
