@@ -1,8 +1,8 @@
 #
 # Cookbook Name:: application
-# Recipe:: default
+# Resource:: passenger_apache2
 #
-# Copyright 2009, Opscode, Inc.
+# Copyright 2011, ZephirWorks
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,13 +17,7 @@
 # limitations under the License.
 #
 
-search(:apps) do |app|
-  (app["server_roles"] & node.roles).each do |app_role|
-    app["type"][app_role].each do |thing|
-      send(:"application_#{thing}", app[:id]) do
-        application app
-        action :create
-      end
-    end
-  end
-end
+actions :create
+
+attribute :name, :kind_of => String, :name_attribute => true
+attribute :application
