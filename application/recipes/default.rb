@@ -19,6 +19,11 @@
 
 search(:apps) do |app|
   (app["server_roles"] & node.roles).each do |app_role|
+    unless app["type"][app_role]
+      Chef::Log.warn("Nothing to do for #{app_role}, check app[:type]")
+      next
+    end
+
     app["type"][app_role].each do |thing|
       send(:"application_#{thing}", app[:id]) do
         application app
