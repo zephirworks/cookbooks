@@ -30,17 +30,6 @@ sysadmins = search(:users, 'groups:sysadmin')
 
 nodes = search(:node, "hostname:[* TO *] AND chef_environment:#{node.chef_environment}")
 
-begin
-  services = search(:nagios_services, '*:*')
-rescue Net::HTTPServerException
-  Chef::Log.info("Search for nagios_services data bag failed, so we'll just move on.")
-end
-
-if services.nil? || services.empty?
-  Chef::Log.info("No services returned from data bag search.")
-  services = Array.new
-end
-
 if nodes.empty?
   Chef::Log.info("No nodes returned from search, using this node so hosts.cfg has data")
   nodes = Array.new
@@ -55,9 +44,27 @@ end
 role_list = Array.new
 service_hosts= Hash.new
 search(:role, "*:*") do |r|
-  role_list << r.name
   search(:node, "role:#{r.name} AND chef_environment:#{node.chef_environment}") do |n|
     service_hosts[r.name] = n['hostname']
+  end
+  role_list << r.name if service_hosts[r.name]
+end
+
+begin
+  services = search(:nagios_services, '*:*')
+rescue Net::HTTPServerException
+  Chef::Log.info("Search for nagios_services data bag failed, so we'll just move on.")
+end
+
+if services.nil? || services.empty?
+  Chef::Log.info("No services returned from data bag search.")
+  services = Array.new
+else
+  # only services with hostgroup_name=all *or* a non-empty group
+  services.select! do |s|
+    !s['hostgroup_name'].nil? &&
+      (s['hostgroup_name'] == 'all' ||
+        service_hosts[s['hostgroup_name']] && !service_hosts[s['hostgroup_name']].empty?)
   end
 end
 
